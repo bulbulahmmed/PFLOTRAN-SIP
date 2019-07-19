@@ -1,0 +1,6 @@
+Tortuosity_Factor	Cementation_Factor	Saturation_exponent	Temperature_correction_factor
+1.00	1.30	2.00	0.02
+1.1	1.31	1.99	0.021
+1.20	1.32	1.98	0.02
+1.3	1.33	1.97	0.025
+

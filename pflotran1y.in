@@ -1,0 +1,353 @@
+!Description: 3D variably saturated flow with infiltration at top
+
+SIMULATION
+  SIMULATION_TYPE HYDROGEOPHYSICS
+  PROCESS_MODELS
+    SUBSURFACE_FLOW flow
+      MODE RICHARDS
+    /
+    SUBSURFACE_TRANSPORT transport
+      GLOBAL_IMPLICIT
+    /
+  /
+END
+
+SUBSURFACE
+
+!DEBUG
+!  PRINT_COUPLERS River
+!END
+
+#=========================== Chemistry ========================================
+CHEMISTRY
+  PRIMARY_SPECIES
+    Tracer
+   /
+
+  DATABASE /home/maruti/src/pflotran/database/hanford.dat
+  MOLAL
+  OUTPUT
+    All
+    TOTAL
+  /
+/
+
+!=========================== solver options ===================================
+TIMESTEPPER FLOW
+  TS_ACCELERATION 8
+  #MAX_TS_CUTS 5
+  #MAX_STEPS 6
+END
+
+NEWTON_SOLVER FLOW
+  MAXIT 20
+  RTOL 1.d-50
+  ATOL 1.d-50
+  STOL 1.e-60
+  ITOL_UPDATE 1.d0
+!  NO_INFINITY_NORM
+!  NO_PRINT_CONVERGENCE
+!  PRINT_DETAILED_CONVERGENCE
+END
+
+LINEAR_SOLVER FLOW
+END
+
+NEWTON_SOLVER TRANSPORT
+!  RTOL 1.d-4
+!  ATOL 1.d-4
+!  STOL 1.e-60
+!  DTOL 1.e4
+!  ITOL_UPDATE 1.d-4
+  NO_INFINITY_NORM
+!  NO_PRINT_CONVERGENCE
+!  PRINT_DETAILED_CONVERGENCE
+END
+
+LINEAR_SOLVER TRANSPORT
+END
+
+!=========================== discretization ===================================
+GRID
+  TYPE structured
+  ORIGIN 0.d0 0.d0 -500.d0
+  NXYZ 50 50 50
+  #NXYZ 10 10 10
+  BOUNDS
+    0.d0 0.d0 -500.d0
+    500.d0 500.d0 0.d0
+  /
+!  GRAVITY 0.d0 0.d0 0.d0
+END
+
+!=========================== fluid properties =================================
+FLUID_PROPERTY
+  DIFFUSION_COEFFICIENT 1.d-9
+END
+
+!=========================== material properties ==============================
+MATERIAL_PROPERTY High_perm
+  ID 1
+  POROSITY 0.3d0
+  TORTUOSITY 1.0d0
+  CHARACTERISTIC_CURVES sf1
+  PERMEABILITY
+    PERM_X 7.387d-13
+    PERM_Y 7.387d-13
+    PERM_Z 7.387d-13
+  /
+END
+
+MATERIAL_PROPERTY Low_perm
+  ID 2
+  POROSITY 0.25d0
+  TORTUOSITY 1.d0
+  CHARACTERISTIC_CURVES sf2
+  PERMEABILITY
+    PERM_X 1.055d-21
+    PERM_Y 1.055d-21
+    PERM_Z 1.055d-21
+  /
+END
+
+#=========================== characteristic curves ============================
+CHARACTERISTIC_CURVES sf1
+  SATURATION_FUNCTION VAN_GENUCHTEN
+    M 0.3391d0
+    ALPHA 7.2727d-4
+    LIQUID_RESIDUAL_SATURATION 0.16d0
+    MAX_CAPILLARY_PRESSURE 1.d8
+  /
+  PERMEABILITY_FUNCTION BURDINE_VG_LIQ
+    M 0.3391d0
+    LIQUID_RESIDUAL_SATURATION 0.16d0
+  /
+END
+
+CHARACTERISTIC_CURVES sf2
+  SATURATION_FUNCTION VAN_GENUCHTEN
+    M 0.7479d0
+    ALPHA 1.4319d-4
+    LIQUID_RESIDUAL_SATURATION 0.1299d0
+    MAX_CAPILLARY_PRESSURE 1.d8
+  /
+  PERMEABILITY_FUNCTION BURDINE_VG_LIQ
+    M 0.7479d0
+    LIQUID_RESIDUAL_SATURATION 0.1299d0
+  /
+END
+
+#========================= output options =========================
+OUTPUT
+  SNAPSHOT_FILE
+    PERIODIC TIME 1 y
+    VARIABLES
+      LIQUID_PRESSURE
+      LIQUID_SATURATION
+      PERMEABILITY
+      POROSITY
+    /
+    FORMAT VTK
+  /
+END
+
+#======================== times ====================================
+TIME
+  FINAL_TIME 1.0 y
+  INITIAL_TIMESTEP_SIZE 1.d-8 y
+  MAXIMUM_TIMESTEP_SIZE 1.d0 y
+  #MAXIMUM_TIMESTEP_SIZE 1.d2 s at 5.d3 s
+/
+
+!=========================== regions ==========================================
+REGION all
+  COORDINATES
+    0.d0 0.d0 -500.d0
+    500.d0 500.d0 0.d0
+  /
+END
+
+REGION top
+  FACE top
+  COORDINATES
+    0.0 0.0 0.0
+    500.0 500.0 0.0
+  /
+END
+
+REGION bottom
+  FACE bottom
+  COORDINATES
+    0.0 0.0 -500.d0
+    500.0 500.0 -500.d0
+  /
+END
+
+REGION west
+  FACE west
+  COORDINATES
+    0.d0 0.d0 -500.d0
+    0.d0 500.d0 0.d0
+  /
+END
+
+REGION east
+  FACE east
+  COORDINATES
+    500.0d0 0.d0 -500.d0
+    500.0d0 500.d0 0.d0
+  /
+END
+
+REGION north
+  FACE north
+  COORDINATES
+    0.0 500.0 -500.d0
+    500.0 500.0 0.0
+  /
+END
+
+REGION south
+  FACE south
+  COORDINATES
+    0.0 0.0 -500.d0
+    500.0 0.0 0.0
+  /
+END
+
+REGION Frac
+  COORDINATES
+    200.0 0.0 -400.d0
+    300.0 500.0 -350.0
+  /
+END
+
+REGION low_perm
+  COORDINATES
+    0.0 0.0 -400.d0
+    500.0 500.0 -350.0
+  /
+END
+
+REGION solute_grid
+  COORDINATES
+    300.0 0.0 -450.d0
+    350.0 500.0 -400.0
+  /
+END
+
+!=========================== flow conditions ==================================
+FLOW_CONDITION initial
+  TYPE
+    PRESSURE hydrostatic
+  /
+  DATUM 0.d0 0.d0 0.d0
+  GRADIENT
+   # PRESSURE 2.5d-4 0.d0 0.d0
+    PRESSURE 0.0d0 0.d0 0.d0
+  /
+  PRESSURE 101325.d0
+END
+
+FLOW_CONDITION river_stage
+  TYPE
+    PRESSURE hydrostatic
+  /
+!  INTERPOLATION LINEAR
+!  CYCLIC
+!  DATUM LIST
+!    TIME_UNITS mo
+!    0.d0 0.d0 0.d0 105.d0
+!    0.5d0 0.d0 0.d0 105.d0
+!    1.d0 0.d0 0.d0 105.8d0
+!    1.5d0 0.d0 0.d0 105.8d0
+!    2.d0 0.d0 0.d0 105.d0
+!    2.5d0 0.d0 0.d0 105.d0
+!  /
+!  GRADIENT
+!    PRESSURE LIST
+!      TIME_UNITS mo
+!      0.d0 0.d0 2.5d-4 0.d0
+!      0.5d0 0.d0 2.5d-4 0.d0
+!      1.d0 0.d0 -2.5d-4 0.0d0
+!      1.5d0 0.d0 -2.5d-4 0.d0
+!      2.d0 0.d0 2.5d-4 0.d0
+!    /
+!  /
+  PRESSURE 201325 ! Pa
+END
+
+!=========================== transport conditions =============================
+TRANSPORT_CONDITION initial
+  TYPE dirichlet_zero_gradient
+  CONSTRAINT_LIST
+    0.d0 initial
+  /
+END
+
+TRANSPORT_CONDITION solute
+  TYPE dirichlet
+  CONSTRAINT_LIST
+    0.d0 solute_concentration
+  /
+END
+
+!=========================== constraints ======================================
+CONSTRAINT solute_concentration
+  CONCENTRATIONS
+    Tracer 10.d0 T
+  /
+END
+
+CONSTRAINT initial
+  CONCENTRATIONS
+    Tracer 1.d-40 T
+  /
+END
+
+!=========================== condition couplers ===============================
+! initial condition
+INITIAL_CONDITION
+  FLOW_CONDITION initial
+  TRANSPORT_CONDITION initial
+  REGION all
+END
+
+!Put tracer into low permeable zone
+INITIAL_CONDITION
+  FLOW_CONDITION river_stage
+  TRANSPORT_CONDITION solute
+  REGION solute_grid
+END
+
+! east boundary condition
+BOUNDARY_CONDITION east
+  FLOW_CONDITION river_stage
+  TRANSPORT_CONDITION initial
+  REGION east
+END
+
+! west boundary condition
+BOUNDARY_CONDITION west
+  FLOW_CONDITION initial
+  TRANSPORT_CONDITION initial
+  REGION west
+END
+
+!=========================== stratigraphy couplers ============================
+STRATA
+  MATERIAL High_perm
+  REGION all
+END
+
+STRATA
+  MATERIAL Low_perm
+  REGION low_perm
+END
+
+STRATA
+  MATERIAL High_perm
+  REGION Frac
+END
+
+END_SUBSURFACE
