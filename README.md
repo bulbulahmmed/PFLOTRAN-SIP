@@ -10,7 +10,7 @@ https://bitbucket.org/satkarra/pflotran-e4d-sip/src/master/
 - export PETSC\_ARCH=gnu-c-debug
 - cd \$PETSC\_DIR
 - make all (or follow make instructions printed at the end of configuration.)
-- Download PFLOTRAN: git clone \url{https://bitbucket.org/satkarra/pflotran-e4d-sip/src/master/}
+- Download PFLOTRAN: git clone <https://bitbucket.org/satkarra/pflotran-e4d-sip/src/master/>
 - cd src/pflotran/
-- make pflotran (for using multiple processors use \texttt{make -j np pflotran} (np = number of processors))
+- make pflotran (for using multiple processors use -- make -j np pflotran (where np = number of processors))
 
